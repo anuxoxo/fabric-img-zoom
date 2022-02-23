@@ -1,6 +1,8 @@
 let canvas = new fabric.Canvas('c'), fileTag;
 let imgElement = new Image();
 let container = document.getElementById('container');
+let imgInstance;
+let dest;
 
 // resize canvas according to container's dimensions
 let resizeObserver = new ResizeObserver(() => {
@@ -26,9 +28,9 @@ function readImage(input) {
             imgElement.src = e.target.result;
 
             imgElement.onload = function () {
-                let imgInstance = new fabric.Image(imgElement, { selectable: false });
+                imgInstance = new fabric.Image(imgElement, { selectable: false });
                 canvas.add(imgInstance);
-                canvas.centerObject(imgInstance)
+                canvas.centerObject(imgInstance);
             }
         }
         reader.readAsDataURL(input.files[0]);
@@ -38,15 +40,24 @@ function readImage(input) {
 
 // zoom in/out functionality
 canvas.on('mouse:wheel', function (opt) {
-    console.log(opt)
-    var delta = opt.e.deltaY;
-    var zoom = canvas.getZoom();
+    let delta = opt.e.deltaY;
+    let zoom = canvas.getZoom();
     zoom *= 0.999 ** delta;
-    if (zoom < 1) {
-        zoom = 1;
-        canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-    }
+    if (zoom < 1) zoom = 1;
     canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
     opt.e.preventDefault();
     opt.e.stopPropagation();
-});
+
+    let vpt = this.viewportTransform;
+    if (vpt[4] >= 0) {
+        vpt[4] = 0;
+    } else if (vpt[4] < canvas.getWidth() - canvas.getWidth() * zoom) {
+        vpt[4] = canvas.getWidth() - canvas.getWidth() * zoom;
+    }
+    if (vpt[5] >= 0) {
+        vpt[5] = 0;
+    } else if (vpt[5] < canvas.getHeight() - canvas.height * zoom) {
+        vpt[5] = canvas.getHeight() - canvas.height * zoom;
+    }
+
+})
